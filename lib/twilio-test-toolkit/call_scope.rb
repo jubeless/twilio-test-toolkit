@@ -40,22 +40,22 @@ module TwilioTestToolkit
 
     # Stuff for gatherers
     def gather?
-      @xml.name == "Gather"
+      @html.name == "Gather"
     end
 
     def gather_action
       raise "Not a gather" unless gather?
-      return @xml["action"]
+      return @html["action"]
     end
 
     def gather_method
       raise "Not a gather" unless gather?
-      return @xml["method"]
+      return @html["method"]
     end
 
     def gather_finish_on_key
       raise "Not a gather" unless gather?
-      return @xml["finishOnKey"] || '#' # '#' is the default finish key if not specified
+      return @html["finishOnKey"] || '#' # '#' is the default finish key if not specified
     end
 
     def press(digits)
@@ -136,7 +136,7 @@ module TwilioTestToolkit
 
       def get_element_node(el)
         el[0] = el[0,1].upcase
-        @xml.at_xpath(el)
+        @html.at_xpath(el)
       end
 
       # Within element returns a scope that's tied to the specified element
@@ -154,15 +154,15 @@ module TwilioTestToolkit
           attr = camel_case_lower(attr)
         end
 
-        attr_on_el = @xml.xpath(el).attribute(attr)
+        attr_on_el = @html.xpath(el).attribute(attr)
         !!attr_on_el && attr_on_el.value == value
       end
 
       def has_element?(el, inner = nil, options = {})
         el[0] = el[0,1].upcase
-        return !(@xml.at_xpath(el).nil?) if inner.nil?
+        return !(@html.at_xpath(el).nil?) if inner.nil?
 
-        @xml.xpath(el).each do |s|
+        @html.xpath(el).each do |s|
           if !options[:exact_inner_match].nil? && options[:exact_inner_match] == true
             return true if s.inner_text.strip == inner
           else
@@ -181,13 +181,13 @@ module TwilioTestToolkit
       # New object creation
       def self.from_xml(parent, xml)
         new_scope = CallScope.new
-        new_scope.send(:set_xml, xml)
+        new_scope.send(:set_html, xml)
         new_scope.send(:root_call=, parent.root_call)
         return new_scope
       end
 
-      def set_xml(xml)
-        @xml = xml
+      def set_html(html)
+        @html = html
       end
 
       # Create a new object from a post. Options:
@@ -202,9 +202,8 @@ module TwilioTestToolkit
 
       def normalize_redirect_path(path)
         p = path
-
         # Strip off ".xml" off of the end of any path
-        p = path[0...path.length - ".xml".length] if path.downcase.match(/\.xml$/)
+        p = path[0...path.length - ".html".length] if path.downcase.match(/\.html$/)
         return p
       end
 
@@ -217,7 +216,7 @@ module TwilioTestToolkit
         # Post the query
         rack_test_session_wrapper = Capybara.current_session.driver
         @response = rack_test_session_wrapper.send(options[:method] || :post, @current_path,
-          :format => :xml,
+          :format => :html,
           :CallSid => @root_call.sid,
           :From => @root_call.from_number,
           :Digits => formatted_digits(options[:digits].to_s, :finish_on_key => options[:finish_on_key]),
@@ -232,7 +231,7 @@ module TwilioTestToolkit
         # Load the xml
         data = @response.body
         @response_xml = Nokogiri::XML.parse(data)
-        set_xml(@response_xml.at_xpath("Response"))
+        set_html(@response_xml.at_xpath("Response"))
       end
 
       # Parent call control
