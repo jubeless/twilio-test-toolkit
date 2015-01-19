@@ -68,6 +68,13 @@ module TwilioTestToolkit
       root_call.request_for_twiml!(path, :digits => digits, :method => gather_method, :finish_on_key => gather_finish_on_key)
     end
 
+    def end(status_path, duration)
+      completed
+      path = status_path
+
+      root_call.request_for_twiml!(path, :CallDuration => duration, :call_status => "completed")
+    end
+
     # Make this easier to support TwiML elements...
     def method_missing(meth, *args, &block)
       # support any check for a given attribute on a given element
